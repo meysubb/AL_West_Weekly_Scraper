@@ -108,7 +108,8 @@ vec$Name <-name_vec
 #}
 
 batting_data <- vec %>% 
-  select(ID,Name,G,GS,PA,AB,R,H,X2B,X3B,HR,RBI,SB,CS,BB,SO,BA,OBP,SLG,OPS,BAbip)
+  select(ID,Name,G,GS,PA,AB,R,H,X2B,X3B,HR,RBI,SB,CS,BB,SO,BA,OBP,SLG,OPS,BAbip) %>% 
+  filter(G<10)
 
 write.csv(batting_data,"Weekly_batting.csv")
 

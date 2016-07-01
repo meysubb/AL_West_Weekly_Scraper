@@ -21,7 +21,7 @@ date_scrape <- function(y,m,d,div) {
 
 year <- 2016
 month <- 6
-day <- 12 
+day <- 26 
 div <- 4
 
 date <- paste0(year,"/",month,"/",day)
@@ -83,8 +83,8 @@ ggplot(alW_standings_2016, aes(Date, GB, colour = Tm)) +
   scale_colour_manual(values = team_colors, name = "Team") + 
   scale_y_reverse(breaks = 0:25) + 
   scale_x_date() + 
-  geom_text(aes(label=ifelse(Date == "2016-06-12", as.character(GB),'')),hjust=-.5, size = 4, show.legend = FALSE) +
-  labs(title = "AL West Race through May 2016") + 
+  geom_text(aes(label=ifelse(Date == "2016-06-26", as.character(GB),'')),hjust=-.5, size = 4, show.legend = FALSE) +
+  labs(title = "AL West Race through June 2016") + 
   theme(legend.title = element_text(size = 12)) + 
   theme(legend.text = element_text(size = 12)) + 
   theme(axis.text = element_text(size = 13, face = "bold"), axis.title = element_text(size = 16, color = "grey50", face = "bold"), plot.title = element_text(size = 35, face = "bold", vjust = 1))
