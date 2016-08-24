@@ -1,7 +1,9 @@
 library(XML)
+library(plyr)
 library(dplyr)
 library(reshape2)
 library(ggplot2)
+
 
 
 ## Corresponding Divisions 
@@ -20,8 +22,8 @@ date_scrape <- function(y,m,d,div) {
 }
 
 year <- 2016
-month <- 6
-day <- 26 
+month <- 8
+day <- 21 
 div <- 4
 
 date <- paste0(year,"/",month,"/",day)
@@ -35,8 +37,8 @@ names(dates) <- "dates"
 dates <- colsplit(dates$dates, "-", c("y", "m", "d"))
 
 # use the do() function to iterate the scrape function over all the dates
-
-out <- dates %>% group_by(y,m,d) %>% do(date_scrape(.$y, .$m, .$d, 4))
+# Group By orders in order of time
+out <- dates %>% group_by(y,m,d) %>% do(date_scrape(.$y, .$m, .$d, div))
 
 # Sundays between weeks
 len <- nrow(dates)
@@ -53,7 +55,11 @@ weekly <- week_record %>%
   mutate(Week_W= W - lag(W),Week_L = L - lag(L),RS_Week = RS - lag(RS), RA_Week = RA-lag(RA)) %>%
   na.omit() %>% 
   select(Tm,Week_W,Week_L,RS_Week,RA_Week) %>% 
-  mutate(W.L = signif(Week_W / (Week_W + Week_L),digits=3))
+  mutate(W.L = signif(Week_W / (Week_W + Week_L),digits=3)) %>% 
+  mutate(pythW.L. = signif(RS_Week^1.83/(RS_Week^1.83 + RA_Week^1.83),digits=3))
+
+
+### Create Plot
 
 dates2 <- as.data.frame(seq(as.Date("2016/04/03"), as.Date(date), by = "days"))
 names(dates2) <- "days" 
@@ -83,8 +89,8 @@ ggplot(alW_standings_2016, aes(Date, GB, colour = Tm)) +
   scale_colour_manual(values = team_colors, name = "Team") + 
   scale_y_reverse(breaks = 0:25) + 
   scale_x_date() + 
-  geom_text(aes(label=ifelse(Date == "2016-06-26", as.character(GB),'')),hjust=-.5, size = 4, show.legend = FALSE) +
-  labs(title = "AL West Race through June 2016") + 
+  geom_text(aes(label=ifelse(Date == "2016-08-21", as.character(GB),'')),hjust=-.5, size = 4, show.legend = FALSE) +
+  labs(title = "AL West Race through August 2016") + 
   theme(legend.title = element_text(size = 12)) + 
   theme(legend.text = element_text(size = 12)) + 
   theme(axis.text = element_text(size = 13, face = "bold"), axis.title = element_text(size = 16, color = "grey50", face = "bold"), plot.title = element_text(size = 35, face = "bold", vjust = 1))
@@ -100,17 +106,21 @@ out$L <- as.numeric(out$L)
 out$Tot <- out$W + out$L
 out$PDiff <- as.numeric(out$W.L.) - 0.500
 out$cum_500 <- ifelse(out$Tot * out$PDiff>0,ceiling(out$Tot * out$PDiff),floor(out$Tot * out$PDiff))
+out$g_500 <- floor(out$Tot * .500)
+out$cum_1_500 <- out$W - out$g_500
 
-cum_game_500 <- ungroup(out) %>% mutate(Date = paste0(y, sep = "-", m, sep = "-", d)) %>% select(Date, Tm, cum_500)
+cum_game_500 <- ungroup(out) %>% mutate(Date = paste0(y, sep = "-", m, sep = "-", d)) %>% select(Date, Tm, cum_1_500)
 cum_game_500$Date <- as.Date(cum_game_500$Date)
+
+ddply(cum_game_500, .(Tm), transform, Cumulative.Sum = cumsum(cum_1_500))
   
   
-ggplot(cum_game_500, aes(Date, cum_500, colour = Tm)) + 
+ggplot(cum_game_500, aes(Date, cum_1_500, colour = Tm)) + 
   geom_line(size = 1.25, alpha = .75) + 
   scale_colour_manual(values = team_colors, name = "Team") + 
   scale_x_date() + 
-  geom_text(aes(label=ifelse(Date == "2016-05-15", as.character(cum_500),'')),hjust=-.5, size = 4, show.legend = FALSE) +
-  labs(title = "AL West Race through May 2016") + 
+  geom_text(aes(label=ifelse(Date == "2016-08-21", as.character(cum_1_500),'')),hjust=-.5, size = 4, show.legend = FALSE) +
+  labs(title = "AL West Race through August 2016") + 
   theme(legend.title = element_text(size = 12)) + 
   theme(legend.text = element_text(size = 12)) + 
   theme(axis.text = element_text(size = 13, face = "bold"), axis.title = element_text(size = 16, color = "grey50", face = "bold"), plot.title = element_text(size = 35, face = "bold", vjust = 1))
